@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Recognition System</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body {
+            background-color: #0d2436;
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #FFD700; /* Changed color of main heading to gold */
+        }
+
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-family: 'Roboto', sans-serif; /* Changed font for buttons */
+            font-weight: 500; /* Added font weight for better readability */
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        form,
+        #year-input,
+        button {
+            display: block;
+            border-radius: 10px;
+            margin: 10px auto;
+            text-align: center;
+            max-width: 400px;
+            background-color: #1a3a5a; /* Changed background color for forms */
+            padding: 20px; /* Added padding for better appearance */
+        }
+
+        input {
+            border-radius: 6px;
+            margin: 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-style: solid;
+            border-width: 1px;
+            background-color: #0f273f;
+            color: white;
+            padding: 8px;
+            width: calc(100% - 20px);
+            box-sizing: border-box;
+        }
+
+        input::placeholder {
+            color: #a0a0a0;
+        }
+
+        .text-color {
+            color: white;
+        }
+
+        #results {
+            margin-top: 20px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        #results p {
+            margin: 10px 0;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <h1>Student Recognition System</h1>
+
+    <h2>Add Student</h2>
+    <form id="add-student-form">
+        <input type="number" class="text-color" placeholder="Student ID" name="student_id" required>
+        <input type="text" class="text-color" placeholder="Student Name" name="student_name" required>
+        <input type="number" class="text-color" placeholder="Academic Year" name="academic_year" required>
+        <input type="number" class="text-color" step="0.01" placeholder="Academic Performance" name="academic_performance" required>
+        <input type="number" class="text-color" placeholder="Consistency Over Semesters" name="consistency_over_semesters" required>
+        <input type="number" class="text-color" step="0.01" placeholder="Core Engineering Courses Score" name="core_engineering_courses_score" required>
+        <input type="number" class="text-color" placeholder="Hackathon Participation" name="hackathon_participation" required>
+        <input type="number" class="text-color" placeholder="Paper Presentations" name="paper_presentations" required>
+        <input type="number" class="text-color" placeholder="Teacher Assistance Contributions" name="teacher_assistance_contributions" required>
+        <button type="submit">Add Student</button>
+    </form>
+
+    <h2>Get Top Students</h2>
+    <input type="number" id="year-input" class="text-color" placeholder="Enter Academic Year">
+    <button id="get-top-students">Get Top Students</button>
+
+    <h2>View All Students</h2>
+    <button id="view-all-students">View All Students</button>
+
+    <div id="results"></div>
+
+    <script>
+        $(document).ready(function() {
+            // Add Student
+            $('#add-student-form').on('submit', function(event) {
+                event.preventDefault();
+                const formData = $(this).serializeArray().reduce((obj, item) => {
+                    obj[item.name] = item.value;
+                    return obj;
+                }, {});
+
+                $.ajax({
+                    url: '/add_student',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function(response) {
+                        $('#results').append(`<p>${response.message}</p>`);
+                    },
+                    error: function(xhr) {
+                        $('#results').append(`<p>${xhr.responseJSON.error}</p>`);
+                    }
+                });
+            });
+
+            // Get Top Students
+            $('#get-top-students').on('click', function() {
+                const yearInput = $('#year-input').val();
+                $.ajax({
+                    url: `/get_top_students/${yearInput}`,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#results').empty();
+                        data.forEach(student => {
+                            $('#results').append(`<p>${student.student_name} - Score: ${student.Score}</p>`);
+                        });
+                    },
+                    error: function(xhr) {
+                        $('#results').empty();
+                        $('#results').append(`<p>${xhr.responseJSON.error}</p>`);
+                    }
+                });
+            });
+
+            // View All Students
+            $('#view-all-students').on('click', function() {
+                $.ajax({
+                    url: '/view_all_students',
+                    method: 'GET',
+                    success: function(data) {
+                        $('#results').empty();
+                        data.forEach(student => {
+                            $('#results').append(`<p>${student.student_name} (${student.academic_year})</p>`);
+                        });
+                    },
+                    error: function(xhr) {
+                        $('#results').empty();
+                        $('#results').append(`<p>${xhr.responseJSON.error}</p>`);
+                    }
+                });
+            });
+        });
+    </script>
+
+</body>
+
+</html>
